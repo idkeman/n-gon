@@ -11,6 +11,8 @@
     #ngon-account .status { font-size:12px; overflow-wrap:anywhere; }
     #ngon-admin-menu { position:fixed; z-index:100001; inset:6%; overflow:auto; padding:18px; background:#111; color:#eee; border:2px solid #0b5; font:14px monospace; }
     #ngon-admin-menu button { margin:4px; padding:6px 10px; }
+    #ngon-account-chip { position:fixed; z-index:100000; top:12px; left:12px; padding:6px 10px; background:rgba(255,255,255,.94); border:1px solid #999; color:#333; font:13px Arial,sans-serif; }
+    #ngon-account-chip button { margin-left:8px; }
   `;
   document.head.appendChild(style);
   const root = document.createElement("section");
@@ -32,6 +34,11 @@
       <div class="status">Admin full-menu shortcut: Ctrl+P</div>
     </div>`;
   document.body.appendChild(root);
+  const chip = document.createElement("div");
+  chip.id = "ngon-account-chip";
+  chip.hidden = true;
+  chip.innerHTML = `<span id="ngon-account-chip-label">Signed in</span><button id="ngon-account-chip-logout" type="button">Log out</button>`;
+  document.body.appendChild(chip);
   const $ = id => document.getElementById(id);
   let signup = false;
   let isAdmin = false;
@@ -47,11 +54,16 @@
   function renderState(user, profile) {
     isAdmin = !!(user && profile && profile.role === "admin");
     if (user) {
-      status("Signed in as " + (profile?.username || user.email || "Account") + (isAdmin ? " · ADMIN" : ""));
-      $("ngon-account-logout").style.display = "inline-block";
+      const label = "Signed in as " + (profile?.username || user.email || "Account") + (isAdmin ? " · ADMIN" : "");
+      status(label);
+      root.style.display = "none";
+      chip.hidden = false;
+      $("ngon-account-chip-label").textContent = label;
+      closeAdminMenu();
     } else {
       status("Not signed in");
-      $("ngon-account-logout").style.display = "none";
+      root.style.display = "block";
+      chip.hidden = true;
       closeAdminMenu();
     }
   }
@@ -73,11 +85,13 @@
     try { await LoginSystem.forgotPassword($("ngon-account-email").value); status("Password reset email sent."); }
     catch (e) { error(e?.message || String(e)); }
   });
-  $("ngon-account-logout").addEventListener("click", async () => {
+  async function logout() {
     error("");
     try { await LoginSystem.logout(); renderState(null, null); }
     catch (e) { error(e?.message || String(e)); }
-  });
+  }
+  $("ngon-account-logout").addEventListener("click", logout);
+  $("ngon-account-chip-logout").addEventListener("click", logout);
   $("ngon-account-password").addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
   window.addEventListener("login-state", e => renderState(e.detail?.user, e.detail?.profile));
   window.addEventListener("login-banned", e => error("Account banned: " + (e.detail?.reason || "No reason provided.")));
@@ -109,8 +123,18 @@
       if (action === "testing") {
         try {
           const key = document.getElementById("key-testing");
-          if (key) key.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-          else document.getElementById("ngon-admin-feedback").textContent = "Testing key control not found; press T in-game.";
+          if (!key) {
+            document.getElementById("ngon-admin-feedback").textContent = "Testing key control not found; start the game and use its testing key.";
+          } else {
+            const label = key.textContent.trim().toUpperCase();
+            const code = /^[A-Z]$/.test(label) ? "Key" + label : /^[0-9]$/.test(label) ? "Digit" + label : /^F([1-9]|1[0-2])$/.test(label) ? label : ({ "SPACE": "Space", "ARROWUP": "ArrowUp", "ARROWDOWN": "ArrowDown", "ARROWLEFT": "ArrowLeft", "ARROWRIGHT": "ArrowRight" })[label] || "";
+            if (!code) {
+              document.getElementById("ngon-admin-feedback").textContent = "Could not map the configured testing key (" + label + "). Use the in-game testing key while alive and unpaused.";
+            } else {
+              window.dispatchEvent(new KeyboardEvent("keydown", { code, key: label.length === 1 ? label.toLowerCase() : label, bubbles: true }));
+              document.getElementById("ngon-admin-feedback").textContent = "Testing key sent (" + label + "). The game must be running, unpaused, and testing must be unlocked in its settings.";
+            }
+          }
         } catch (e) { document.getElementById("ngon-admin-feedback").textContent = e?.message || String(e); }
       }
       if (action === "pause") {
