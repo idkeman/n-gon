@@ -1320,6 +1320,32 @@ window.addEventListener("keydown", function (event) {
     }
 }, true);
 
+// Admin account integration: allow authenticated admins to toggle the built-in test loop
+// without relying on a synthetic key event or the normal lore-unlock requirement.
+window.ngonAdminToggleTesting = function () {
+    if (!m.alive) return { ok: false, message: "Start a run first; testing mode requires an active player." };
+    if (simulation.paused || build.isExperimentSelection) return { ok: false, message: "Resume gameplay and close the experiment selection before toggling testing." };
+    if (simulation.difficultyMode > 6) return { ok: false, message: "Testing mode is disabled on this difficulty." };
+    simulation.testing = !simulation.testing;
+    if (simulation.testing) {
+        simulation.loop = simulation.testingLoop;
+        tech.setCheating();
+        if (simulation.isConstructionMode) {
+            document.getElementById("construct").style.display = "inline";
+        } else {
+            simulation.inGameConsole(
+                "<table class='pause-table'><tr><td class='key-input-pause'>ADMIN</td><td class='key-used'><strong>testing mode enabled</strong></td></tr><tr><td class='key-input-pause'>R</td><td class='key-used'>teleport to mouse</td></tr><tr><td class='key-input-pause'>F</td><td class='key-used'>cycle field</td></tr><tr><td class='key-input-pause'>G</td><td class='key-used'>all guns</td></tr><tr><td class='key-input-pause'>H</td><td class='key-used'>+100% defense</td></tr><tr><td class='key-input-pause'>B</td><td class='key-used'>damage, research</td></tr><tr><td class='key-input-pause'>N</td><td class='key-used'>fill health, energy</td></tr><tr><td class='key-input-pause'>Y</td><td class='key-used'>experiment menu</td></tr><tr><td class='key-input-pause'>U</td><td class='key-used'>next level</td></tr><tr><td class='key-input-pause'>J</td><td class='key-used'>clear mobs</td></tr></table>",
+                Infinity
+            );
+        }
+        return { ok: true, message: "Testing mode enabled." };
+    }
+    simulation.loop = simulation.normalLoop;
+    if (simulation.isConstructionMode) document.getElementById("construct").style.display = "none";
+    simulation.inGameConsole("", 0);
+    return { ok: true, message: "Testing mode disabled." };
+};
+
 window.addEventListener("keydown", function (event) {
     // input.lastDown = event.code
     // console.log(event.code)
