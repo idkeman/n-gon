@@ -121,21 +121,17 @@
       const action = event.target?.dataset?.action;
       if (action === "close") closeAdminMenu();
       if (action === "testing") {
+        const feedback = document.getElementById("ngon-admin-feedback");
         try {
-          const key = document.getElementById("key-testing");
-          if (!key) {
-            document.getElementById("ngon-admin-feedback").textContent = "Testing key control not found; start the game and use its testing key.";
+          if (typeof window.ngonAdminToggleTesting !== "function") {
+            feedback.textContent = "Game testing hook is unavailable. Reload the page after the game scripts finish loading.";
           } else {
-            const label = key.textContent.trim().toUpperCase();
-            const code = /^[A-Z]$/.test(label) ? "Key" + label : /^[0-9]$/.test(label) ? "Digit" + label : /^F([1-9]|1[0-2])$/.test(label) ? label : ({ "SPACE": "Space", "ARROWUP": "ArrowUp", "ARROWDOWN": "ArrowDown", "ARROWLEFT": "ArrowLeft", "ARROWRIGHT": "ArrowRight" })[label] || "";
-            if (!code) {
-              document.getElementById("ngon-admin-feedback").textContent = "Could not map the configured testing key (" + label + "). Use the in-game testing key while alive and unpaused.";
-            } else {
-              window.dispatchEvent(new KeyboardEvent("keydown", { code, key: label.length === 1 ? label.toLowerCase() : label, bubbles: true }));
-              document.getElementById("ngon-admin-feedback").textContent = "Testing key sent (" + label + "). The game must be running, unpaused, and testing must be unlocked in its settings.";
-            }
+            const result = window.ngonAdminToggleTesting();
+            feedback.textContent = result?.message || (result?.ok ? "Testing mode toggled." : "Testing mode could not be toggled.");
           }
-        } catch (e) { document.getElementById("ngon-admin-feedback").textContent = e?.message || String(e); }
+        } catch (e) {
+          feedback.textContent = e?.message || String(e);
+        }
       }
       if (action === "pause") {
         try {
