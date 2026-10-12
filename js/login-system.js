@@ -60,6 +60,11 @@
       chip.hidden = false;
       $("ngon-account-chip-label").textContent = label;
       closeAdminMenu();
+      if (isAdmin) {
+        const unlock = () => window.ngonAdminUnlockTesting?.();
+        if (typeof window.ngonAdminUnlockTesting === "function") unlock();
+        else window.addEventListener("load", unlock, { once: true });
+      }
     } else {
       status("Not signed in");
       root.style.display = "block";
@@ -112,22 +117,22 @@
     panel.innerHTML = `
       <h2>n-gon · Admin / Full Testing Menu</h2>
       <p>Admin-only controls. These expose the game's existing testing hooks; they do not change server-side permissions.</p>
-      <button data-action="testing">Toggle built-in testing mode (T)</button>
+      <button data-action="testing">Unlock testing mode</button>
       <button data-action="pause">Pause / resume (P)</button>
       <button data-action="close">Close (Ctrl+P)</button>
       <hr><div id="ngon-admin-feedback">Ready.</div>
-      <p>Use the game's own testing controls after enabling testing mode. This panel does not fabricate a separate game menu or invoke unknown functions.</p>`;
+      <p>Testing unlock is saved through the game's lore-completion setting. Start a run, unpause, then press T to enter the native testing mode.</p>`;
     panel.addEventListener("click", event => {
       const action = event.target?.dataset?.action;
       if (action === "close") closeAdminMenu();
       if (action === "testing") {
         const feedback = document.getElementById("ngon-admin-feedback");
         try {
-          if (typeof window.ngonAdminToggleTesting !== "function") {
-            feedback.textContent = "Game testing hook is unavailable. Reload the page after the game scripts finish loading.";
+          if (typeof window.ngonAdminUnlockTesting !== "function") {
+            feedback.textContent = "Game unlock hook is unavailable. Reload the page after the game scripts finish loading.";
           } else {
-            const result = window.ngonAdminToggleTesting();
-            feedback.textContent = result?.message || (result?.ok ? "Testing mode toggled." : "Testing mode could not be toggled.");
+            const result = window.ngonAdminUnlockTesting();
+            feedback.textContent = result?.message || "Testing mode unlock updated.";
           }
         } catch (e) {
           feedback.textContent = e?.message || String(e);
