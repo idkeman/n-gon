@@ -1320,8 +1320,9 @@ window.addEventListener("keydown", function (event) {
     }
 }, true);
 
-// Admin account integration: unlock the game's native testing mode by marking the
-// lore/tutorial unlock as completed. The original T key handler then works normally.
+// Admin integration: permanently unlock the native testing key and let the admin
+// menu toggle it through the same key handler the game normally uses.
+window.ngonAdminTestingOverride = false;
 window.ngonAdminUnlockTesting = function () {
     if (typeof localSettings === "undefined") {
         return { ok: false, message: "Game settings are not ready yet. Reload and try again." };
@@ -1329,14 +1330,30 @@ window.ngonAdminUnlockTesting = function () {
     localSettings.loreCount = Math.max(1, Number(localSettings.loreCount) || 0);
     const testingControl = document.getElementById("control-testing");
     if (testingControl) testingControl.style.visibility = "visible";
-    const experimentControl = document.getElementById("experiment-button");
-    if (experimentControl) experimentControl.style.visibility = "visible";
     try {
-        if (localSettings.isAllowed) localStorage.setItem("localSettings", JSON.stringify(localSettings));
+        // n-gon persists settings under this exact key; save regardless of the
+        // isAllowed flag so the unlock survives a reload whenever storage works.
+        localStorage.setItem("localSettings", JSON.stringify(localSettings));
     } catch (error) {
         console.warn("Could not save the testing-mode unlock:", error);
     }
-    return { ok: true, message: "Testing mode unlocked. Start a run, make sure it is unpaused, then press T to enter testing mode." };
+
+    if (typeof m !== "undefined" && m.alive &&
+        typeof simulation !== "undefined" && !simulation.paused &&
+        typeof build !== "undefined" && !build.isExperimentSelection) {
+        window.ngonAdminTestingOverride = true;
+        try {
+            window.dispatchEvent(new KeyboardEvent("keydown", {
+                code: input.key.testing,
+                key: "t",
+                bubbles: true
+            }));
+        } finally {
+            window.ngonAdminTestingOverride = false;
+        }
+        return { ok: true, message: simulation.testing ? "Testing mode is ON." : "Testing mode toggle was blocked by the game state. Make sure the run is active and unpaused." };
+    }
+    return { ok: true, message: "Testing unlock saved. Start an active run, unpause it, then press T or click this button again to turn testing mode on." };
 };
 
 window.addEventListener("keydown", function (event) {
@@ -1414,8 +1431,8 @@ window.addEventListener("keydown", function (event) {
             break
         }
         case input.key.testing:
-            if (m.alive && localSettings.loreCount > 0 && !simulation.paused && !build.isExperimentSelection) {
-                if (simulation.difficultyMode > 6) {
+            if (m.alive && (localSettings.loreCount > 0 || window.ngonAdminTestingOverride) && !simulation.paused && !build.isExperimentSelection) {
+                if (simulation.difficultyMode > 6 && !window.ngonAdminTestingOverride) {
                     simulation.inGameConsole("<em>testing mode disabled for this difficulty</em>");
                     break
                 }
