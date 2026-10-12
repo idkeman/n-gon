@@ -29,7 +29,7 @@
         <button id="ngon-account-forgot">Reset password</button>
         <button id="ngon-account-logout" style="display:none">Log out</button>
       </div>
-      <div class="status">Admin full-menu shortcut: F8</div>
+      <div class="status">Admin full-menu shortcut: Ctrl+P</div>
     </div>`;
   document.body.appendChild(root);
   const $ = id => document.getElementById(id);
@@ -88,7 +88,7 @@
   }
   function unlockMenu() {
     if (!isAdmin || !LoginSystem?.isAdmin) {
-      status("F8 requires an authenticated admin account.");
+      status("Ctrl+P requires an authenticated admin account.");
       return;
     }
     if (menuOpen) { closeAdminMenu(); return; }
@@ -100,7 +100,7 @@
       <p>Admin-only controls. These expose the game's existing testing hooks; they do not change server-side permissions.</p>
       <button data-action="testing">Toggle built-in testing mode (T)</button>
       <button data-action="pause">Pause / resume (P)</button>
-      <button data-action="close">Close (F8)</button>
+      <button data-action="close">Close (Ctrl+P)</button>
       <hr><div id="ngon-admin-feedback">Ready.</div>
       <p>Use the game's own testing controls after enabling testing mode. This panel does not fabricate a separate game menu or invoke unknown functions.</p>`;
     panel.addEventListener("click", event => {
