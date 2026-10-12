@@ -124,7 +124,7 @@
     document.body.appendChild(panel);
   }
   window.addEventListener("keydown", event => {
-    if (event.code !== "F8" || event.repeat || event.target?.matches("input,textarea,select,[contenteditable=true]")) return;
+    if (!(event.ctrlKey && event.code === "KeyP") || event.repeat || event.target?.matches("input,textarea,select,[contenteditable=true]")) return;
     if (!isAdmin || !LoginSystem?.isAdmin) return;
     event.preventDefault();
     unlockMenu();
