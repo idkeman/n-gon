@@ -117,11 +117,11 @@
     panel.innerHTML = `
       <h2>n-gon · Admin / Full Testing Menu</h2>
       <p>Admin-only controls. These expose the game's existing testing hooks; they do not change server-side permissions.</p>
-      <button data-action="testing">Unlock testing mode</button>
+      <button data-action="testing">Enable / disable testing mode</button>
       <button data-action="pause">Pause / resume (P)</button>
       <button data-action="close">Close (Ctrl+P)</button>
       <hr><div id="ngon-admin-feedback">Ready.</div>
-      <p>Testing unlock is saved through the game's lore-completion setting. Start a run, unpause, then press T to enter the native testing mode.</p>`;
+      <p>This marks the lore unlock as completed and saves it. During an active, unpaused run, use T or click the button to toggle testing mode. Admin testing can bypass the normal difficulty restriction.</p>`;
     panel.addEventListener("click", event => {
       const action = event.target?.dataset?.action;
       if (action === "close") closeAdminMenu();
