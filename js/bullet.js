@@ -4970,9 +4970,14 @@ const b = {
         // radius *= Math.sqrt(tech.bulletSize)
         const me = bullet.length;
         bullet[me] = Bodies.polygon(position.x, position.y, 20, radius, {
-            density: 0.000001, //  0.001 is normal density
+            density: window.ngonBlueWaterFoamMod ? 0.000004 : 0.000001, // Slightly denser for a water-like feel
             inertia: Infinity,
-            frictionAir: 0.003,
+            frictionAir: window.ngonBlueWaterFoamMod ? 0.018 : 0.003,
+            render: {
+                fillStyle: window.ngonBlueWaterFoamMod ? "#168cff" : "#000000",
+                strokeStyle: window.ngonBlueWaterFoamMod ? "#9bdcff" : "#000000",
+                lineWidth: window.ngonBlueWaterFoamMod ? 1.5 : 0
+            },
             dmg: 0, //damage on impact
             damage: tech.foamDamage * (tech.isFastFoam ? 2.8 : 1) * (tech.isBulletTeleport ? 1.53 : 1), //damage done over time
             scale: 1 - 0.006 / tech.bulletsLastLonger * (tech.isFastFoam ? 1.65 : 1) / (tech.nanoparticles === 6 ? 1.6 : 1),
@@ -5056,6 +5061,14 @@ const b = {
             },
             onEnd() { },
             do() {
+                if (window.ngonBlueWaterFoamMod) {
+                    // Gentle drag and mild upward buoyancy make loose foam drift
+                    // and swirl more like water droplets than heavy black pellets.
+                    Matter.Body.applyForce(this, this.position, {
+                        x: -this.velocity.x * this.mass * 0.0008,
+                        y: -this.mass * 0.000006
+                    });
+                }
                 if (this.count < 20) {
                     this.count++
                     //grow
@@ -5297,6 +5310,35 @@ const b = {
         dmg *= tech.bulletSize
         const me = bullet.length;
         bullet[me] = Bodies.rectangle(pos.x, pos.y, 25 * tech.bulletSize, 2 * tech.bulletSize, b.fireAttributes(Math.atan2(velocity.y, velocity.x)));
+        if (window.ngonArrowNailMod) {
+            // Procedural arrow appearance: no image asset. Draws along the nail's
+            // velocity so ricochets and other direction changes stay aligned.
+            bullet[me].render = bullet[me].render || {};
+            bullet[me].render.visible = false;
+            bullet[me].do = function () {
+                if (!window.ngonArrowNailMod || !this.velocity || !Number.isFinite(this.position.x)) return;
+                const angle = Math.atan2(this.velocity.y, this.velocity.x);
+                const scale = Math.max(0.7, Math.min(1.5, tech.bulletSize || 1));
+                ctx.save();
+                ctx.translate(this.position.x, this.position.y);
+                ctx.rotate(angle);
+                ctx.scale(scale, scale);
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
+                // Wooden shaft
+                ctx.strokeStyle = "#b88a50";
+                ctx.lineWidth = 2.4;
+                ctx.beginPath(); ctx.moveTo(-13, 0); ctx.lineTo(9, 0); ctx.stroke();
+                // Dark pointed arrowhead
+                ctx.fillStyle = "#282923";
+                ctx.beginPath(); ctx.moveTo(13, 0); ctx.lineTo(7, -3.1); ctx.lineTo(8.5, 0); ctx.lineTo(7, 3.1); ctx.closePath(); ctx.fill();
+                // Small feather fletching
+                ctx.fillStyle = "#5d4636";
+                ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-16, -4); ctx.lineTo(-8, -1); ctx.closePath(); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-16, 4); ctx.lineTo(-8, 1); ctx.closePath(); ctx.fill();
+                ctx.restore();
+            };
+        }
         Matter.Body.setVelocity(bullet[me], velocity);
         Composite.add(engine.world, bullet[me]); //add bullet to world
         bullet[me].endCycle = simulation.cycle + 80 + 18 * Math.random();
