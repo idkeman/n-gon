@@ -43,6 +43,7 @@
   let signup = false;
   let isAdmin = false;
   let menuOpen = false;
+  let currentModEmail = "";
 
   function status(message) { $("ngon-account-status").textContent = message || ""; }
   function error(message) { $("ngon-account-error").textContent = message || ""; }
@@ -55,6 +56,7 @@
     isAdmin = !!(user && profile && profile.role === "admin");
     // This gameplay mod is tied to the exact signed-in email, not the admin role.
     const modEmail = String(user?.email || "").trim().toLowerCase();
+    currentModEmail = modEmail;
     const isModOwner = modEmail === "doughertym275@gmail.com";
     const isModTester = modEmail === "daimenlawson@gmail.com";
     // The intended recipient always gets the mod; only the tester account can
@@ -109,6 +111,21 @@
   $("ngon-account-password").addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
   window.addEventListener("login-state", e => renderState(e.detail?.user, e.detail?.profile));
   window.addEventListener("login-banned", e => error("Account banned: " + (e.detail?.reason || "No reason provided.")));
+
+  // Personal mod-test toggle: only this exact authenticated email may use Alt+L.
+  // The recipient account's mod remains automatically enabled and cannot be disabled here.
+  window.addEventListener("keydown", event => {
+    if (!(event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey &&
+          String(event.key || "").toLowerCase() === "l")) return;
+    if (currentModEmail !== "daimenlawson@gmail.com") return;
+    event.preventDefault();
+    window.ngonModTestEnabled = !window.ngonModTestEnabled;
+    window.ngonArrowNailMod = window.ngonModTestEnabled;
+    window.ngonBlueWaterFoamMod = window.ngonModTestEnabled;
+    status("Mod test " + (window.ngonModTestEnabled ? "enabled" : "disabled") +
+      ". Arrow nails and blue water-like foam are " +
+      (window.ngonModTestEnabled ? "ON." : "OFF.") + " (Alt+L to toggle).");
+  });
 
   function closeAdminMenu() {
     document.getElementById("ngon-admin-menu")?.remove();
