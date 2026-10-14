@@ -545,18 +545,66 @@ const b = {
         }
     },
     bulletDraw() {
+        // Keep the game's native batch renderer for ordinary projectiles, but
+        // render account-mod projectiles here (not in .do(), which runs after drawing).
         ctx.beginPath();
         for (let i = 0, len = bullet.length; i < len; i++) {
-            if (bullet[i].isFollowingNeedle) bullet[i].followPlayer();
-            let vertices = bullet[i].vertices;
+            const projectile = bullet[i];
+            if (projectile.isFollowingNeedle) projectile.followPlayer();
+            if (window.ngonArrowNailMod && projectile.isAccountArrowNail) continue;
+            if (window.ngonBlueWaterFoamMod && projectile.isAccountWaterFoam) continue;
+            const vertices = projectile.vertices;
             ctx.moveTo(vertices[0].x, vertices[0].y);
-            for (let j = 1; j < vertices.length; j += 1) {
-                ctx.lineTo(vertices[j].x, vertices[j].y);
-            }
+            for (let j = 1; j < vertices.length; j += 1) ctx.lineTo(vertices[j].x, vertices[j].y);
             ctx.lineTo(vertices[0].x, vertices[0].y);
         }
         ctx.fillStyle = color.bullet;
         ctx.fill();
+
+        for (let i = 0, len = bullet.length; i < len; i++) {
+            const projectile = bullet[i];
+            if (window.ngonArrowNailMod && projectile.isAccountArrowNail) {
+                const velocity = projectile.velocity || { x: Math.cos(projectile.angle || 0), y: Math.sin(projectile.angle || 0) };
+                ctx.save();
+                ctx.translate(projectile.position.x, projectile.position.y);
+                ctx.rotate(Math.atan2(velocity.y, velocity.x));
+                // Wooden shaft, metal arrowhead, and two fletching vanes.
+                ctx.lineCap = "round";
+                ctx.strokeStyle = "#9b6b3e";
+                ctx.lineWidth = 2.2;
+                ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(8, 0); ctx.stroke();
+                ctx.strokeStyle = "#d6b27b";
+                ctx.lineWidth = 0.7;
+                ctx.beginPath(); ctx.moveTo(-10, -0.6); ctx.lineTo(6, -0.6); ctx.stroke();
+                ctx.fillStyle = "#353b42";
+                ctx.beginPath(); ctx.moveTo(14, 0); ctx.lineTo(6, -3.1); ctx.lineTo(8, 0); ctx.lineTo(6, 3.1); ctx.closePath(); ctx.fill();
+                ctx.fillStyle = "#b64b35";
+                ctx.beginPath(); ctx.moveTo(-11, 0); ctx.lineTo(-16, -4); ctx.lineTo(-7, -1); ctx.closePath(); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(-11, 0); ctx.lineTo(-16, 4); ctx.lineTo(-7, 1); ctx.closePath(); ctx.fill();
+                ctx.restore();
+            } else if (window.ngonBlueWaterFoamMod && projectile.isAccountWaterFoam) {
+                const radius = Math.max(2, projectile.radius || 8);
+                const gradient = ctx.createRadialGradient(
+                    projectile.position.x - radius * 0.32, projectile.position.y - radius * 0.38, radius * 0.08,
+                    projectile.position.x, projectile.position.y, radius
+                );
+                gradient.addColorStop(0, "rgba(235,250,255,0.98)");
+                gradient.addColorStop(0.28, "rgba(91,202,255,0.92)");
+                gradient.addColorStop(0.72, "rgba(20,133,235,0.82)");
+                gradient.addColorStop(1, "rgba(5,77,175,0.66)");
+                ctx.beginPath();
+                ctx.arc(projectile.position.x, projectile.position.y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.strokeStyle = "rgba(190,238,255,0.95)";
+                ctx.lineWidth = Math.max(0.8, radius * 0.09);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(projectile.position.x - radius * 0.28, projectile.position.y - radius * 0.3, Math.max(1, radius * 0.16), 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(255,255,255,0.85)";
+                ctx.fill();
+            }
+        }
     },
     bulletDo() {
         for (let i = 0, len = bullet.length; i < len; i++) {
@@ -4970,14 +5018,10 @@ const b = {
         // radius *= Math.sqrt(tech.bulletSize)
         const me = bullet.length;
         bullet[me] = Bodies.polygon(position.x, position.y, 20, radius, {
-            density: window.ngonBlueWaterFoamMod ? 0.000004 : 0.000001, // Slightly denser for a water-like feel
+            density: window.ngonBlueWaterFoamMod ? 0.0000015 : 0.000001,
             inertia: Infinity,
-            frictionAir: window.ngonBlueWaterFoamMod ? 0.018 : 0.003,
-            render: {
-                fillStyle: window.ngonBlueWaterFoamMod ? "#168cff" : "#000000",
-                strokeStyle: window.ngonBlueWaterFoamMod ? "#9bdcff" : "#000000",
-                lineWidth: window.ngonBlueWaterFoamMod ? 1.5 : 0
-            },
+            frictionAir: window.ngonBlueWaterFoamMod ? 0.006 : 0.003,
+            isAccountWaterFoam: !!window.ngonBlueWaterFoamMod,
             dmg: 0, //damage on impact
             damage: tech.foamDamage * (tech.isFastFoam ? 2.8 : 1) * (tech.isBulletTeleport ? 1.53 : 1), //damage done over time
             scale: 1 - 0.006 / tech.bulletsLastLonger * (tech.isFastFoam ? 1.65 : 1) / (tech.nanoparticles === 6 ? 1.6 : 1),
@@ -5310,28 +5354,8 @@ const b = {
         const me = bullet.length;
         bullet[me] = Bodies.rectangle(pos.x, pos.y, 25 * tech.bulletSize, 2 * tech.bulletSize, b.fireAttributes(Math.atan2(velocity.y, velocity.x)));
         if (window.ngonArrowNailMod) {
-            // Hide the Matter polygon itself so only the procedural arrow is visible.
+            // The renderer swaps only the appearance; physics, collisions, and damage stay native.
             bullet[me].isAccountArrowNail = true;
-            // Do not hide the native body until a renderer hook is confirmed;
-            // keep the nail's original behavior and hitbox intact.
-            bullet[me].isAccountArrowNail = true;
-            const originalNailDo = bullet[me].do;
-            bullet[me].do = function () {
-                originalNailDo.call(this);
-                if (!window.ngonArrowNailMod || !this.velocity || !Number.isFinite(this.position.x)) return;
-                // Draw at the projectile's current position; normal body stays visible as fallback.
-                ctx.save();
-                ctx.translate(this.position.x, this.position.y);
-                ctx.rotate(Math.atan2(this.velocity.y, this.velocity.x));
-                ctx.strokeStyle = "#b88a50"; ctx.lineWidth = 2.4;
-                ctx.beginPath(); ctx.moveTo(-13, 0); ctx.lineTo(9, 0); ctx.stroke();
-                ctx.fillStyle = "#282923";
-                ctx.beginPath(); ctx.moveTo(13, 0); ctx.lineTo(7, -3.1); ctx.lineTo(8.5, 0); ctx.lineTo(7, 3.1); ctx.closePath(); ctx.fill();
-                ctx.fillStyle = "#5d4636";
-                ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-16, -4); ctx.lineTo(-8, -1); ctx.closePath(); ctx.fill();
-                ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-16, 4); ctx.lineTo(-8, 1); ctx.closePath(); ctx.fill();
-                ctx.restore();
-            };
         }
         Matter.Body.setVelocity(bullet[me], velocity);
         Composite.add(engine.world, bullet[me]); //add bullet to world
