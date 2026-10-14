@@ -53,6 +53,10 @@
   }
   function renderState(user, profile) {
     isAdmin = !!(user && profile && profile.role === "admin");
+    // This gameplay mod is tied to the exact signed-in email, not the admin role.
+    const modEmail = String(user?.email || "").trim().toLowerCase();
+    window.ngonArrowNailMod = modEmail === "doughertym275@gmail.com";
+    window.ngonBlueWaterFoamMod = window.ngonArrowNailMod;
     if (user) {
       const label = "Signed in as " + (profile?.username || user.email || "Account") + (isAdmin ? " · ADMIN" : "");
       status(label);
