@@ -5311,33 +5311,36 @@ const b = {
         const me = bullet.length;
         bullet[me] = Bodies.rectangle(pos.x, pos.y, 25 * tech.bulletSize, 2 * tech.bulletSize, b.fireAttributes(Math.atan2(velocity.y, velocity.x)));
         if (window.ngonArrowNailMod) {
-            // Procedural arrow appearance: no image asset. Draws along the nail's
-            // velocity so ricochets and other direction changes stay aligned.
-            bullet[me].render = bullet[me].render || {};
-            bullet[me].render.visible = false;
-            bullet[me].do = function () {
-                if (!window.ngonArrowNailMod || !this.velocity || !Number.isFinite(this.position.x)) return;
-                const angle = Math.atan2(this.velocity.y, this.velocity.x);
-                const scale = Math.max(0.7, Math.min(1.5, tech.bulletSize || 1));
-                ctx.save();
-                ctx.translate(this.position.x, this.position.y);
-                ctx.rotate(angle);
-                ctx.scale(scale, scale);
-                ctx.lineCap = "round";
-                ctx.lineJoin = "round";
-                // Wooden shaft
-                ctx.strokeStyle = "#b88a50";
-                ctx.lineWidth = 2.4;
-                ctx.beginPath(); ctx.moveTo(-13, 0); ctx.lineTo(9, 0); ctx.stroke();
-                // Dark pointed arrowhead
-                ctx.fillStyle = "#282923";
-                ctx.beginPath(); ctx.moveTo(13, 0); ctx.lineTo(7, -3.1); ctx.lineTo(8.5, 0); ctx.lineTo(7, 3.1); ctx.closePath(); ctx.fill();
-                // Small feather fletching
-                ctx.fillStyle = "#5d4636";
-                ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-16, -4); ctx.lineTo(-8, -1); ctx.closePath(); ctx.fill();
-                ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-16, 4); ctx.lineTo(-8, 1); ctx.closePath(); ctx.fill();
-                ctx.restore();
-            };
+            // Draw the procedural arrow independently of the game's default no-op nail do().
+            bullet[me].isAccountArrowNail = true;
+            simulation.ephemera.push({
+                count: Infinity,
+                nail: bullet[me],
+                do() {
+                    const nail = this.nail;
+                    if (!nail || !bullet.includes(nail)) {
+                        simulation.removeEphemera(this);
+                        return;
+                    }
+                    if (!window.ngonArrowNailMod) return;
+                    const angle = Math.atan2(nail.velocity.y, nail.velocity.x);
+                    const scale = Math.max(0.7, Math.min(1.5, tech.bulletSize || 1));
+                    ctx.save();
+                    ctx.translate(nail.position.x, nail.position.y);
+                    ctx.rotate(angle);
+                    ctx.scale(scale, scale);
+                    ctx.lineCap = "round";
+                    ctx.lineJoin = "round";
+                    ctx.strokeStyle = "#b88a50"; ctx.lineWidth = 2.4;
+                    ctx.beginPath(); ctx.moveTo(-13, 0); ctx.lineTo(9, 0); ctx.stroke();
+                    ctx.fillStyle = "#282923";
+                    ctx.beginPath(); ctx.moveTo(13, 0); ctx.lineTo(7, -3.1); ctx.lineTo(8.5, 0); ctx.lineTo(7, 3.1); ctx.closePath(); ctx.fill();
+                    ctx.fillStyle = "#5d4636";
+                    ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-16, -4); ctx.lineTo(-8, -1); ctx.closePath(); ctx.fill();
+                    ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-16, 4); ctx.lineTo(-8, 1); ctx.closePath(); ctx.fill();
+                    ctx.restore();
+                }
+            });
         }
         Matter.Body.setVelocity(bullet[me], velocity);
         Composite.add(engine.world, bullet[me]); //add bullet to world
