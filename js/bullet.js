@@ -5062,23 +5062,11 @@ const b = {
             onEnd() { },
             do() {
                 if (window.ngonBlueWaterFoamMod) {
+                    // Keep forces subtle so foam growth, sticking, and lifetime remain intact.
                     Matter.Body.applyForce(this, this.position, {
-                        x: -this.velocity.x * this.mass * 0.0015 + Math.sin(simulation.cycle * 0.08 + this.position.y * 0.01) * this.mass * 0.000003,
-                        y: -this.mass * 0.000012
+                        x: -this.velocity.x * this.mass * 0.00008,
+                        y: -this.mass * 0.000001
                     });
-                    // Override the game's generic black-bullet renderer with a blue water bead.
-                    ctx.save();
-                    const gradient = ctx.createRadialGradient(this.position.x - this.radius * 0.28, this.position.y - this.radius * 0.3, 1, this.position.x, this.position.y, this.radius);
-                    gradient.addColorStop(0, "#d9f7ff");
-                    gradient.addColorStop(0.28, "#39c6ff");
-                    gradient.addColorStop(1, "#075de8");
-                    ctx.fillStyle = gradient;
-                    ctx.strokeStyle = "#a8efff";
-                    ctx.lineWidth = 1.5;
-                    ctx.beginPath();
-                    ctx.arc(this.position.x, this.position.y, Math.max(2, this.radius * 0.72), 0, Math.PI * 2);
-                    ctx.fill(); ctx.stroke();
-                    ctx.restore();
                 }
                 if (this.count < 20) {
                     this.count++
@@ -5324,17 +5312,17 @@ const b = {
         if (window.ngonArrowNailMod) {
             // Hide the Matter polygon itself so only the procedural arrow is visible.
             bullet[me].isAccountArrowNail = true;
-            bullet[me].render = bullet[me].render || {};
-            bullet[me].render.visible = false;
+            // Do not hide the native body until a renderer hook is confirmed;
+            // keep the nail's original behavior and hitbox intact.
+            bullet[me].isAccountArrowNail = true;
+            const originalNailDo = bullet[me].do;
             bullet[me].do = function () {
+                originalNailDo.call(this);
                 if (!window.ngonArrowNailMod || !this.velocity || !Number.isFinite(this.position.x)) return;
-                const angle = Math.atan2(this.velocity.y, this.velocity.x);
-                const scale = Math.max(0.7, Math.min(1.5, tech.bulletSize || 1));
+                // Draw at the projectile's current position; normal body stays visible as fallback.
                 ctx.save();
                 ctx.translate(this.position.x, this.position.y);
-                ctx.rotate(angle);
-                ctx.scale(scale, scale);
-                ctx.lineCap = "round"; ctx.lineJoin = "round";
+                ctx.rotate(Math.atan2(this.velocity.y, this.velocity.x));
                 ctx.strokeStyle = "#b88a50"; ctx.lineWidth = 2.4;
                 ctx.beginPath(); ctx.moveTo(-13, 0); ctx.lineTo(9, 0); ctx.stroke();
                 ctx.fillStyle = "#282923";
