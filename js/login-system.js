@@ -114,18 +114,23 @@
 
   // Personal mod-test toggle: only this exact authenticated email may use Alt+L.
   // The recipient account's mod remains automatically enabled and cannot be disabled here.
-  window.addEventListener("keydown", event => {
+  function toggleModTest(event) {
     if (!(event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey &&
-          String(event.key || "").toLowerCase() === "l")) return;
+          (event.code === "KeyL" || String(event.key || "").toLowerCase() === "l"))) return;
     if (currentModEmail !== "daimenlawson@gmail.com") return;
     event.preventDefault();
+    event.stopPropagation();
     window.ngonModTestEnabled = !window.ngonModTestEnabled;
     window.ngonArrowNailMod = window.ngonModTestEnabled;
     window.ngonBlueWaterFoamMod = window.ngonModTestEnabled;
-    status("Mod test " + (window.ngonModTestEnabled ? "enabled" : "disabled") +
-      ". Arrow nails and blue water-like foam are " +
-      (window.ngonModTestEnabled ? "ON." : "OFF.") + " (Alt+L to toggle).");
-  });
+    const message = "Mod test " + (window.ngonModTestEnabled ? "enabled" : "disabled") +
+      " — arrow nails and blue water-like foam " + (window.ngonModTestEnabled ? "ON" : "OFF") + ". Press Alt+L to toggle.";
+    const chipLabel = $("ngon-account-chip-label");
+    if (chipLabel) chipLabel.textContent = "Signed in · " + message;
+    status(message);
+  }
+  // Capture phase makes the shortcut run before game/browser handlers.
+  window.addEventListener("keydown", toggleModTest, true);
 
   function closeAdminMenu() {
     document.getElementById("ngon-admin-menu")?.remove();
