@@ -5062,12 +5062,23 @@ const b = {
             onEnd() { },
             do() {
                 if (window.ngonBlueWaterFoamMod) {
-                    // Gentle drag and mild upward buoyancy make loose foam drift
-                    // and swirl more like water droplets than heavy black pellets.
                     Matter.Body.applyForce(this, this.position, {
-                        x: -this.velocity.x * this.mass * 0.0008,
-                        y: -this.mass * 0.000006
+                        x: -this.velocity.x * this.mass * 0.0015 + Math.sin(simulation.cycle * 0.08 + this.position.y * 0.01) * this.mass * 0.000003,
+                        y: -this.mass * 0.000012
                     });
+                    // Override the game's generic black-bullet renderer with a blue water bead.
+                    ctx.save();
+                    const gradient = ctx.createRadialGradient(this.position.x - this.radius * 0.28, this.position.y - this.radius * 0.3, 1, this.position.x, this.position.y, this.radius);
+                    gradient.addColorStop(0, "#d9f7ff");
+                    gradient.addColorStop(0.28, "#39c6ff");
+                    gradient.addColorStop(1, "#075de8");
+                    ctx.fillStyle = gradient;
+                    ctx.strokeStyle = "#a8efff";
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.arc(this.position.x, this.position.y, Math.max(2, this.radius * 0.72), 0, Math.PI * 2);
+                    ctx.fill(); ctx.stroke();
+                    ctx.restore();
                 }
                 if (this.count < 20) {
                     this.count++
@@ -5311,36 +5322,28 @@ const b = {
         const me = bullet.length;
         bullet[me] = Bodies.rectangle(pos.x, pos.y, 25 * tech.bulletSize, 2 * tech.bulletSize, b.fireAttributes(Math.atan2(velocity.y, velocity.x)));
         if (window.ngonArrowNailMod) {
-            // Draw the procedural arrow independently of the game's default no-op nail do().
+            // Hide the Matter polygon itself so only the procedural arrow is visible.
             bullet[me].isAccountArrowNail = true;
-            simulation.ephemera.push({
-                count: Infinity,
-                nail: bullet[me],
-                do() {
-                    const nail = this.nail;
-                    if (!nail || !bullet.includes(nail)) {
-                        simulation.removeEphemera(this);
-                        return;
-                    }
-                    if (!window.ngonArrowNailMod) return;
-                    const angle = Math.atan2(nail.velocity.y, nail.velocity.x);
-                    const scale = Math.max(0.7, Math.min(1.5, tech.bulletSize || 1));
-                    ctx.save();
-                    ctx.translate(nail.position.x, nail.position.y);
-                    ctx.rotate(angle);
-                    ctx.scale(scale, scale);
-                    ctx.lineCap = "round";
-                    ctx.lineJoin = "round";
-                    ctx.strokeStyle = "#b88a50"; ctx.lineWidth = 2.4;
-                    ctx.beginPath(); ctx.moveTo(-13, 0); ctx.lineTo(9, 0); ctx.stroke();
-                    ctx.fillStyle = "#282923";
-                    ctx.beginPath(); ctx.moveTo(13, 0); ctx.lineTo(7, -3.1); ctx.lineTo(8.5, 0); ctx.lineTo(7, 3.1); ctx.closePath(); ctx.fill();
-                    ctx.fillStyle = "#5d4636";
-                    ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-16, -4); ctx.lineTo(-8, -1); ctx.closePath(); ctx.fill();
-                    ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-16, 4); ctx.lineTo(-8, 1); ctx.closePath(); ctx.fill();
-                    ctx.restore();
-                }
-            });
+            bullet[me].render = bullet[me].render || {};
+            bullet[me].render.visible = false;
+            bullet[me].do = function () {
+                if (!window.ngonArrowNailMod || !this.velocity || !Number.isFinite(this.position.x)) return;
+                const angle = Math.atan2(this.velocity.y, this.velocity.x);
+                const scale = Math.max(0.7, Math.min(1.5, tech.bulletSize || 1));
+                ctx.save();
+                ctx.translate(this.position.x, this.position.y);
+                ctx.rotate(angle);
+                ctx.scale(scale, scale);
+                ctx.lineCap = "round"; ctx.lineJoin = "round";
+                ctx.strokeStyle = "#b88a50"; ctx.lineWidth = 2.4;
+                ctx.beginPath(); ctx.moveTo(-13, 0); ctx.lineTo(9, 0); ctx.stroke();
+                ctx.fillStyle = "#282923";
+                ctx.beginPath(); ctx.moveTo(13, 0); ctx.lineTo(7, -3.1); ctx.lineTo(8.5, 0); ctx.lineTo(7, 3.1); ctx.closePath(); ctx.fill();
+                ctx.fillStyle = "#5d4636";
+                ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-16, -4); ctx.lineTo(-8, -1); ctx.closePath(); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-16, 4); ctx.lineTo(-8, 1); ctx.closePath(); ctx.fill();
+                ctx.restore();
+            };
         }
         Matter.Body.setVelocity(bullet[me], velocity);
         Composite.add(engine.world, bullet[me]); //add bullet to world
