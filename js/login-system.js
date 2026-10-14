@@ -55,7 +55,12 @@
     isAdmin = !!(user && profile && profile.role === "admin");
     // This gameplay mod is tied to the exact signed-in email, not the admin role.
     const modEmail = String(user?.email || "").trim().toLowerCase();
-    window.ngonArrowNailMod = modEmail === "doughertym275@gmail.com";
+    const isModOwner = modEmail === "doughertym275@gmail.com";
+    const isModTester = modEmail === "daimenlawson@gmail.com";
+    // The intended recipient always gets the mod; only the tester account can
+    // temporarily enable/disable it with Alt+L.
+    window.ngonModTestEnabled = !!(isModTester && window.ngonModTestEnabled);
+    window.ngonArrowNailMod = isModOwner || window.ngonModTestEnabled;
     window.ngonBlueWaterFoamMod = window.ngonArrowNailMod;
     if (user) {
       const label = "Signed in as " + (profile?.username || user.email || "Account") + (isAdmin ? " · ADMIN" : "");
@@ -152,6 +157,18 @@
     });
     document.body.appendChild(panel);
   }
+  window.addEventListener("keydown", event => {
+    if (!(event.altKey && event.code === "KeyL") || event.repeat || event.target?.matches("input,textarea,select,[contenteditable=true]")) return;
+    const signedInEmail = String(LoginSystem?.currentUser?.email || LoginSystem?.user?.email || "").trim().toLowerCase();
+    if (signedInEmail !== "daimenlawson@gmail.com") return;
+    event.preventDefault();
+    window.ngonModTestEnabled = !window.ngonModTestEnabled;
+    window.ngonArrowNailMod = window.ngonModTestEnabled;
+    window.ngonBlueWaterFoamMod = window.ngonModTestEnabled;
+    status(window.ngonModTestEnabled
+      ? "Mod test ON: arrow nails + blue water-like foam."
+      : "Mod test OFF: original nail and foam visuals restored.");
+  });
   window.addEventListener("keydown", event => {
     if (!(event.ctrlKey && event.code === "KeyP") || event.repeat || event.target?.matches("input,textarea,select,[contenteditable=true]")) return;
     if (!isAdmin || !LoginSystem?.isAdmin) return;
