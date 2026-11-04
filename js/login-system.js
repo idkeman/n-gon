@@ -8,42 +8,72 @@
     #ngon-account { position:fixed; z-index:100000; top:12px; left:12px; font:14px Arial,sans-serif; color:#333; }
     #ngon-account button,#ngon-account input { font:inherit; margin:3px 2px; padding:6px 8px; }
     #ngon-account .panel { background:rgba(255,255,255,.97); border:1px solid #999; padding:10px; max-width:280px; }
+    #ngon-account .account-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    #ngon-account .account-heading button,#ngon-account-chip .collapse-button { margin:0; padding:4px 8px; cursor:pointer; }
+    #ngon-account .account-content { margin-top:6px; }
+    #ngon-account.collapsed .account-content { display:none; }
+    #ngon-account.collapsed .panel { padding:6px 8px; }
     #ngon-account .status { font-size:12px; overflow-wrap:anywhere; }
     #ngon-admin-menu { position:fixed; z-index:100001; inset:6%; overflow:auto; padding:18px; background:#111; color:#eee; border:2px solid #0b5; font:14px monospace; }
     #ngon-admin-menu button { margin:4px; padding:6px 10px; }
-    #ngon-account-chip { position:fixed; z-index:100000; top:12px; left:12px; padding:6px 10px; background:rgba(255,255,255,.94); border:1px solid #999; color:#333; font:13px Arial,sans-serif; }
-    #ngon-account-chip button { margin-left:8px; }
+    #ngon-account-chip { position:fixed; z-index:100000; top:12px; left:12px; padding:6px 10px; background:rgba(255,255,255,.94); border:1px solid #999; color:#333; font:13px Arial,sans-serif; display:flex; align-items:center; gap:8px; }
+    #ngon-account-chip[hidden] { display:none; }
+    #ngon-account-chip.collapsed #ngon-account-chip-label,#ngon-account-chip.collapsed #ngon-account-chip-logout { display:none; }
   `;
   document.head.appendChild(style);
   const root = document.createElement("section");
   root.id = "ngon-account";
   root.innerHTML = `
     <div class="panel">
-      <strong>n-gon account</strong>
-      <div id="ngon-account-status" class="status">Connecting…</div>
-      <div id="ngon-account-fields">
-        <input id="ngon-account-email" type="email" placeholder="Email" autocomplete="email">
-        <input id="ngon-account-password" type="password" placeholder="Password" autocomplete="current-password">
-        <input id="ngon-account-username" placeholder="Username (for signup)" maxlength="24" style="display:none">
-        <div id="ngon-account-error" class="status" role="status"></div>
-        <button id="ngon-account-submit">Log in</button>
-        <button id="ngon-account-toggle">Create account</button>
-        <button id="ngon-account-forgot">Reset password</button>
-        <button id="ngon-account-logout" style="display:none">Log out</button>
+      <div class="account-heading"><strong>n-gon account</strong><button id="ngon-account-collapse" type="button" aria-expanded="true" title="Collapse account panel">−</button></div>
+      <div class="account-content" id="ngon-account-content">
+        <div id="ngon-account-status" class="status">Connecting…</div>
+        <div id="ngon-account-fields">
+          <input id="ngon-account-email" type="email" placeholder="Email" autocomplete="email">
+          <input id="ngon-account-password" type="password" placeholder="Password" autocomplete="current-password">
+          <input id="ngon-account-username" placeholder="Username (for signup)" maxlength="24" style="display:none">
+          <div id="ngon-account-error" class="status" role="status"></div>
+          <button id="ngon-account-submit">Log in</button>
+          <button id="ngon-account-toggle">Create account</button>
+          <button id="ngon-account-forgot">Reset password</button>
+          <button id="ngon-account-logout" style="display:none">Log out</button>
+        </div>
+        <div class="status">Admin full-menu shortcut: Ctrl+P</div>
       </div>
-      <div class="status">Admin full-menu shortcut: Ctrl+P</div>
     </div>`;
   document.body.appendChild(root);
   const chip = document.createElement("div");
   chip.id = "ngon-account-chip";
   chip.hidden = true;
-  chip.innerHTML = `<span id="ngon-account-chip-label">Signed in</span><button id="ngon-account-chip-logout" type="button">Log out</button>`;
+  chip.innerHTML = `<button id="ngon-account-chip-collapse" class="collapse-button" type="button" aria-expanded="true" title="Collapse account controls">−</button><span id="ngon-account-chip-label">Signed in</span><button id="ngon-account-chip-logout" type="button">Log out</button>`;
   document.body.appendChild(chip);
   const $ = id => document.getElementById(id);
   let signup = false;
   let isAdmin = false;
   let menuOpen = false;
   let currentModEmail = "";
+  let accountCollapsed = false;
+
+  function setAccountCollapsed(collapsed) {
+    accountCollapsed = !!collapsed;
+    root.classList.toggle("collapsed", accountCollapsed);
+    chip.classList.toggle("collapsed", accountCollapsed);
+    const symbol = accountCollapsed ? "+" : "−";
+    const rootToggle = $("ngon-account-collapse");
+    const chipToggle = $("ngon-account-chip-collapse");
+    if (rootToggle) {
+      rootToggle.textContent = symbol;
+      rootToggle.setAttribute("aria-expanded", String(!accountCollapsed));
+      rootToggle.title = accountCollapsed ? "Expand account panel" : "Collapse account panel";
+    }
+    if (chipToggle) {
+      chipToggle.textContent = symbol;
+      chipToggle.setAttribute("aria-expanded", String(!accountCollapsed));
+      chipToggle.title = accountCollapsed ? "Expand account controls" : "Collapse account controls";
+    }
+  }
+  $("ngon-account-collapse").addEventListener("click", () => setAccountCollapsed(!accountCollapsed));
+  $("ngon-account-chip-collapse").addEventListener("click", () => setAccountCollapsed(!accountCollapsed));
 
   function status(message) { $("ngon-account-status").textContent = message || ""; }
   function error(message) { $("ngon-account-error").textContent = message || ""; }
