@@ -605,57 +605,92 @@ const b = {
                 ctx.fillStyle = "rgba(255,255,255,0.85)";
                 ctx.fill();
             } else if (window.ngonArrowNailMod && projectile.isPoseidonTrident) {
-                // Poseidon's bronze-and-gold trident: visual-only, aligned to
-                // the existing harpoon body so its hitbox and physics are untouched.
+                // Hand-drawn-style three-pronged Trident. Canvas vector geometry
+                // keeps the reskin crisp while leaving the native physics untouched.
                 const scale = Math.max(0.45, Math.min(2.5, projectile.poseidonScale || 1));
                 ctx.save();
                 ctx.translate(projectile.position.x, projectile.position.y);
                 ctx.rotate(projectile.angle);
                 ctx.scale(scale, scale);
-
-                // Long dark-gold shaft with a bright central highlight.
                 ctx.lineCap = "round";
-                ctx.strokeStyle = "#65451c";
-                ctx.lineWidth = 7;
-                ctx.beginPath(); ctx.moveTo(-43, 0); ctx.lineTo(29, 0); ctx.stroke();
-                ctx.strokeStyle = "#d9a83d";
-                ctx.lineWidth = 3.8;
-                ctx.beginPath(); ctx.moveTo(-42, -0.8); ctx.lineTo(28, -0.8); ctx.stroke();
-                ctx.strokeStyle = "rgba(255,235,160,0.8)";
-                ctx.lineWidth = 1;
-                ctx.beginPath(); ctx.moveTo(-39, -1.6); ctx.lineTo(25, -1.6); ctx.stroke();
+                ctx.lineJoin = "round";
 
-                // Ornamental collar where the three tines meet the shaft.
-                ctx.fillStyle = "#8b5a20";
-                ctx.beginPath(); ctx.moveTo(23, -6); ctx.lineTo(32, -5); ctx.lineTo(35, 0);
-                ctx.lineTo(32, 5); ctx.lineTo(23, 6); ctx.closePath(); ctx.fill();
-                ctx.strokeStyle = "#f4d36e";
+                // Long, narrow dark shaft.
+                ctx.strokeStyle = "#11172d";
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(-53, 0);
+                ctx.lineTo(20, 0);
+                ctx.stroke();
+                ctx.strokeStyle = "#343b70";
+                ctx.lineWidth = 3.2;
+                ctx.beginPath();
+                ctx.moveTo(-52, -0.5);
+                ctx.lineTo(18, -0.5);
+                ctx.stroke();
+
+                // Central tine, widening into the blue spearhead.
+                ctx.beginPath();
+                ctx.moveTo(7, 0);
+                ctx.lineTo(25, -5);
+                ctx.lineTo(63, -31);
+                ctx.lineTo(53, -8);
+                ctx.lineTo(17, 5);
+                ctx.closePath();
+                ctx.fillStyle = "#343b70";
+                ctx.fill();
+                ctx.strokeStyle = "#10162c";
+                ctx.lineWidth = 2.2;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(28, -6);
+                ctx.lineTo(55, -27);
+                ctx.lineTo(49, -9);
+                ctx.lineTo(20, 3);
+                ctx.closePath();
+                ctx.fillStyle = "#4168d5";
+                ctx.fill();
+                ctx.strokeStyle = "#11172d";
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
 
-                // Center tine and two swept side tines.
-                ctx.fillStyle = "#f0c85b";
-                ctx.strokeStyle = "#fff0a0";
-                ctx.lineWidth = 1.2;
+                // Two long, swept outer prongs.
                 ctx.beginPath();
-                ctx.moveTo(27, -3); ctx.lineTo(31, -5); ctx.lineTo(40, -22);
-                ctx.lineTo(38, -5); ctx.lineTo(49, 0); ctx.lineTo(38, 5);
-                ctx.lineTo(40, 22); ctx.lineTo(31, 5); ctx.lineTo(27, 3);
-                ctx.closePath(); ctx.fill(); ctx.stroke();
+                ctx.moveTo(9, -2);
+                ctx.lineTo(24, -16);
+                ctx.lineTo(69, -62);
+                ctx.lineTo(57, -38);
+                ctx.lineTo(28, -10);
+                ctx.closePath();
+                ctx.fillStyle = "#343b70";
+                ctx.fill();
+                ctx.strokeStyle = "#10162c";
+                ctx.lineWidth = 2.1;
+                ctx.stroke();
 
-                ctx.fillStyle = "#dcae3e";
                 ctx.beginPath();
-                ctx.moveTo(30, -3); ctx.quadraticCurveTo(38, -16, 43, -25);
-                ctx.quadraticCurveTo(42, -10, 35, -2);
-                ctx.closePath(); ctx.fill();
-                ctx.beginPath();
-                ctx.moveTo(30, 3); ctx.quadraticCurveTo(38, 16, 43, 25);
-                ctx.quadraticCurveTo(42, 10, 35, 2);
-                ctx.closePath(); ctx.fill();
+                ctx.moveTo(10, 3);
+                ctx.lineTo(27, 12);
+                ctx.lineTo(68, 52);
+                ctx.lineTo(54, 31);
+                ctx.lineTo(24, 8);
+                ctx.closePath();
+                ctx.fillStyle = "#343b70";
+                ctx.fill();
+                ctx.strokeStyle = "#10162c";
+                ctx.lineWidth = 2.1;
+                ctx.stroke();
 
-                // Small turquoise inlay evokes the sea without obscuring the metal.
-                ctx.fillStyle = "#36d4d0";
-                ctx.beginPath(); ctx.moveTo(25, -2); ctx.lineTo(31, 0); ctx.lineTo(25, 2); ctx.closePath(); ctx.fill();
+                // Fine inner edges create the sharp, tapered sketch-like finish.
+                ctx.strokeStyle = "#171d39";
+                ctx.lineWidth = 1.1;
+                ctx.beginPath();
+                ctx.moveTo(17, -7);
+                ctx.lineTo(62, -57);
+                ctx.moveTo(18, 7);
+                ctx.lineTo(61, 47);
+                ctx.stroke();
                 ctx.restore();
             }
         }
