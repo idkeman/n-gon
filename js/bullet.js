@@ -605,92 +605,103 @@ const b = {
                 ctx.fillStyle = "rgba(255,255,255,0.85)";
                 ctx.fill();
             } else if (window.ngonArrowNailMod && projectile.isPoseidonTrident) {
-                // Hand-drawn-style three-pronged Trident. Canvas vector geometry
-                // keeps the reskin crisp while leaving the native physics untouched.
+                // Three clearly separated spear points, drawn as Canvas vectors.
+                // The native projectile body remains responsible for all physics.
                 const scale = Math.max(0.45, Math.min(2.5, projectile.poseidonScale || 1));
                 ctx.save();
                 ctx.translate(projectile.position.x, projectile.position.y);
                 ctx.rotate(projectile.angle);
                 ctx.scale(scale, scale);
-                ctx.lineCap = "round";
                 ctx.lineJoin = "round";
+                ctx.lineCap = "round";
 
-                // Long, narrow dark shaft.
-                ctx.strokeStyle = "#11172d";
+                // Long handle leading into the three-way fork.
+                ctx.strokeStyle = "#10162d";
                 ctx.lineWidth = 6;
                 ctx.beginPath();
-                ctx.moveTo(-53, 0);
-                ctx.lineTo(20, 0);
+                ctx.moveTo(-56, 0);
+                ctx.lineTo(22, 0);
                 ctx.stroke();
-                ctx.strokeStyle = "#343b70";
-                ctx.lineWidth = 3.2;
+                ctx.strokeStyle = "#454b7e";
+                ctx.lineWidth = 2.4;
                 ctx.beginPath();
-                ctx.moveTo(-52, -0.5);
-                ctx.lineTo(18, -0.5);
+                ctx.moveTo(-53, -0.8);
+                ctx.lineTo(19, -0.8);
                 ctx.stroke();
 
-                // Central tine, widening into the blue spearhead.
+                // Upper spike: its own tapered blade, with a visible gap below it.
                 ctx.beginPath();
-                ctx.moveTo(7, 0);
-                ctx.lineTo(25, -5);
-                ctx.lineTo(63, -31);
-                ctx.lineTo(53, -8);
-                ctx.lineTo(17, 5);
+                ctx.moveTo(5, -3);
+                ctx.lineTo(24, -20);
+                ctx.lineTo(72, -70);
+                ctx.lineTo(53, -29);
+                ctx.lineTo(17, -1);
                 ctx.closePath();
                 ctx.fillStyle = "#343b70";
                 ctx.fill();
-                ctx.strokeStyle = "#10162c";
-                ctx.lineWidth = 2.2;
+                ctx.strokeStyle = "#10162d";
+                ctx.lineWidth = 2.4;
+                ctx.stroke();
+                ctx.strokeStyle = "#59649c";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(20, -9);
+                ctx.lineTo(62, -57);
                 ctx.stroke();
 
+                // Center spike: straight, longer, and blue.
                 ctx.beginPath();
-                ctx.moveTo(28, -6);
-                ctx.lineTo(55, -27);
-                ctx.lineTo(49, -9);
-                ctx.lineTo(20, 3);
+                ctx.moveTo(13, -5);
+                ctx.lineTo(61, -17);
+                ctx.lineTo(82, -5);
+                ctx.lineTo(67, 0);
+                ctx.lineTo(82, 5);
+                ctx.lineTo(61, 17);
+                ctx.lineTo(13, 5);
+                ctx.closePath();
+                ctx.fillStyle = "#343b70";
+                ctx.fill();
+                ctx.strokeStyle = "#10162d";
+                ctx.lineWidth = 2.4;
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(31, -4);
+                ctx.lineTo(72, -5);
+                ctx.lineTo(62, 0);
                 ctx.closePath();
                 ctx.fillStyle = "#4168d5";
                 ctx.fill();
-                ctx.strokeStyle = "#11172d";
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
 
-                // Two long, swept outer prongs.
+                // Lower spike mirrors the upper spike, leaving a clear center gap.
                 ctx.beginPath();
-                ctx.moveTo(9, -2);
-                ctx.lineTo(24, -16);
-                ctx.lineTo(69, -62);
-                ctx.lineTo(57, -38);
-                ctx.lineTo(28, -10);
+                ctx.moveTo(5, 3);
+                ctx.lineTo(24, 20);
+                ctx.lineTo(72, 70);
+                ctx.lineTo(53, 29);
+                ctx.lineTo(17, 1);
                 ctx.closePath();
                 ctx.fillStyle = "#343b70";
                 ctx.fill();
-                ctx.strokeStyle = "#10162c";
-                ctx.lineWidth = 2.1;
+                ctx.strokeStyle = "#10162d";
+                ctx.lineWidth = 2.4;
+                ctx.stroke();
+                ctx.strokeStyle = "#59649c";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(20, 9);
+                ctx.lineTo(62, 57);
                 ctx.stroke();
 
+                // Dark fork junction ties all three blades into the handle.
+                ctx.fillStyle = "#171d39";
                 ctx.beginPath();
-                ctx.moveTo(10, 3);
-                ctx.lineTo(27, 12);
-                ctx.lineTo(68, 52);
-                ctx.lineTo(54, 31);
-                ctx.lineTo(24, 8);
+                ctx.moveTo(8, -8);
+                ctx.lineTo(25, -5);
+                ctx.lineTo(29, 0);
+                ctx.lineTo(25, 5);
+                ctx.lineTo(8, 8);
                 ctx.closePath();
-                ctx.fillStyle = "#343b70";
                 ctx.fill();
-                ctx.strokeStyle = "#10162c";
-                ctx.lineWidth = 2.1;
-                ctx.stroke();
-
-                // Fine inner edges create the sharp, tapered sketch-like finish.
-                ctx.strokeStyle = "#171d39";
-                ctx.lineWidth = 1.1;
-                ctx.beginPath();
-                ctx.moveTo(17, -7);
-                ctx.lineTo(62, -57);
-                ctx.moveTo(18, 7);
-                ctx.lineTo(61, 47);
-                ctx.stroke();
                 ctx.restore();
             }
         }
