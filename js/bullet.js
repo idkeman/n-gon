@@ -553,7 +553,7 @@ const b = {
             if (projectile.isFollowingNeedle) projectile.followPlayer();
             if (window.ngonArrowNailMod && projectile.isAccountArrowNail) continue;
             if (window.ngonBlueWaterFoamMod && projectile.isAccountWaterFoam) continue;
-            if (projectile.isPoseidonTrident) continue;
+            if (window.ngonArrowNailMod && projectile.isPoseidonTrident) continue;
             const vertices = projectile.vertices;
             ctx.moveTo(vertices[0].x, vertices[0].y);
             for (let j = 1; j < vertices.length; j += 1) ctx.lineTo(vertices[j].x, vertices[j].y);
@@ -604,7 +604,7 @@ const b = {
                 ctx.arc(projectile.position.x - radius * 0.28, projectile.position.y - radius * 0.3, Math.max(1, radius * 0.16), 0, Math.PI * 2);
                 ctx.fillStyle = "rgba(255,255,255,0.85)";
                 ctx.fill();
-            } else if (projectile.isPoseidonTrident) {
+            } else if (window.ngonArrowNailMod && projectile.isPoseidonTrident) {
                 // Poseidon's bronze-and-gold trident: visual-only, aligned to
                 // the existing harpoon body so its hitbox and physics are untouched.
                 const scale = Math.max(0.45, Math.min(2.5, projectile.poseidonScale || 1));
