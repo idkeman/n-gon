@@ -553,6 +553,7 @@ const b = {
             if (projectile.isFollowingNeedle) projectile.followPlayer();
             if (window.ngonArrowNailMod && projectile.isAccountArrowNail) continue;
             if (window.ngonBlueWaterFoamMod && projectile.isAccountWaterFoam) continue;
+            if (projectile.isPoseidonTrident) continue;
             const vertices = projectile.vertices;
             ctx.moveTo(vertices[0].x, vertices[0].y);
             for (let j = 1; j < vertices.length; j += 1) ctx.lineTo(vertices[j].x, vertices[j].y);
@@ -603,6 +604,59 @@ const b = {
                 ctx.arc(projectile.position.x - radius * 0.28, projectile.position.y - radius * 0.3, Math.max(1, radius * 0.16), 0, Math.PI * 2);
                 ctx.fillStyle = "rgba(255,255,255,0.85)";
                 ctx.fill();
+            } else if (projectile.isPoseidonTrident) {
+                // Poseidon's bronze-and-gold trident: visual-only, aligned to
+                // the existing harpoon body so its hitbox and physics are untouched.
+                const scale = Math.max(0.45, Math.min(2.5, projectile.poseidonScale || 1));
+                ctx.save();
+                ctx.translate(projectile.position.x, projectile.position.y);
+                ctx.rotate(projectile.angle);
+                ctx.scale(scale, scale);
+
+                // Long dark-gold shaft with a bright central highlight.
+                ctx.lineCap = "round";
+                ctx.strokeStyle = "#65451c";
+                ctx.lineWidth = 7;
+                ctx.beginPath(); ctx.moveTo(-43, 0); ctx.lineTo(29, 0); ctx.stroke();
+                ctx.strokeStyle = "#d9a83d";
+                ctx.lineWidth = 3.8;
+                ctx.beginPath(); ctx.moveTo(-42, -0.8); ctx.lineTo(28, -0.8); ctx.stroke();
+                ctx.strokeStyle = "rgba(255,235,160,0.8)";
+                ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(-39, -1.6); ctx.lineTo(25, -1.6); ctx.stroke();
+
+                // Ornamental collar where the three tines meet the shaft.
+                ctx.fillStyle = "#8b5a20";
+                ctx.beginPath(); ctx.moveTo(23, -6); ctx.lineTo(32, -5); ctx.lineTo(35, 0);
+                ctx.lineTo(32, 5); ctx.lineTo(23, 6); ctx.closePath(); ctx.fill();
+                ctx.strokeStyle = "#f4d36e";
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Center tine and two swept side tines.
+                ctx.fillStyle = "#f0c85b";
+                ctx.strokeStyle = "#fff0a0";
+                ctx.lineWidth = 1.2;
+                ctx.beginPath();
+                ctx.moveTo(27, -3); ctx.lineTo(31, -5); ctx.lineTo(40, -22);
+                ctx.lineTo(38, -5); ctx.lineTo(49, 0); ctx.lineTo(38, 5);
+                ctx.lineTo(40, 22); ctx.lineTo(31, 5); ctx.lineTo(27, 3);
+                ctx.closePath(); ctx.fill(); ctx.stroke();
+
+                ctx.fillStyle = "#dcae3e";
+                ctx.beginPath();
+                ctx.moveTo(30, -3); ctx.quadraticCurveTo(38, -16, 43, -25);
+                ctx.quadraticCurveTo(42, -10, 35, -2);
+                ctx.closePath(); ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(30, 3); ctx.quadraticCurveTo(38, 16, 43, 25);
+                ctx.quadraticCurveTo(42, 10, 35, 2);
+                ctx.closePath(); ctx.fill();
+
+                // Small turquoise inlay evokes the sea without obscuring the metal.
+                ctx.fillStyle = "#36d4d0";
+                ctx.beginPath(); ctx.moveTo(25, -2); ctx.lineTo(31, 0); ctx.lineTo(25, 2); ctx.closePath(); ctx.fill();
+                ctx.restore();
             }
         }
     },
@@ -2281,6 +2335,8 @@ const b = {
         bullet[me] = Bodies.fromVertices(where.x, where.y, shape, {
             cycle: 0,
             angle: angle,
+            isPoseidonTrident: true,
+            poseidonScale: harpoonSize,
             friction: 1,
             frictionAir: 0.4,
             // thrustMag: 0.1,
